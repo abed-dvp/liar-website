@@ -12,7 +12,7 @@ import streamlit as st
 
 API_URL = "https://liar-api-892561467745.europe-west1.run.app/predict"
 
-MODEL_OPTIONS = ["naive"]
+MODEL_OPTIONS = ["naive", "naive_xboost"]
 
 SUBJECT_OPTIONS = [
     "unknown",
