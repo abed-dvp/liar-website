@@ -10,9 +10,9 @@ import requests
 import streamlit as st
 
 
-API_URL = "https://liar-api-892561467745.europe-west1.run.app/predict"
+API_URL = "https://liar-api-1091606282523.europe-west1.run.app/predict"
 
-MODEL_OPTIONS = ["naive", "naive_xboost"]
+MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
 
 SUBJECT_OPTIONS = [
     "unknown",
