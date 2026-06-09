@@ -3,16 +3,17 @@ What is this file?
 This file defines the Streamlit frontend for the LIAR prediction project.
 
 What is its responsibility?
-It collects user input, lets the user optionally provide metadata, sends the request to the FastAPI backend, and displays the prediction result.
+It collects user input, lets the user optionally provide metadata, sends the request to the FastAPI backend, and displays the prediction, similar statements, and explanation.
 """
-import os
+
 import requests
 import streamlit as st
 
 
-API_URL = "https://liar-api-1091606282523.europe-west1.run.app/predict"
+#API_URL = "https://liar-api-1091606282523.europe-west1.run.app/explain"
+API_URL = "http://127.0.0.1:8000/explain"
 
-MODEL_OPTIONS = ["naive", "naive_xboost","roberta"]
+MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
 
 SUBJECT_OPTIONS = [
     "unknown",
@@ -170,6 +171,30 @@ def render_probabilities(class_probabilities: dict) -> None:
         st.progress(float(probability))
 
 
+def render_similar_statements(similar_statements: list[dict]) -> None:
+    st.subheader("Similar statements")
+
+    if not similar_statements:
+        st.info("No similar statements were returned.")
+        return
+
+    for index, item in enumerate(similar_statements, start=1):
+        with st.expander(f"Similar statement {index}: {item.get('label', 'unknown')}"):
+            st.write(f"Speaker: {item.get('speaker', 'unknown')}")
+            st.write(f"Label: {item.get('label', 'unknown')}")
+            st.write(f"Context: {item.get('context', 'unknown')}")
+            st.write(item.get("statement", ""))
+
+
+def render_explanation(explanation: str) -> None:
+    st.subheader("Explanation")
+
+    if explanation:
+        st.write(explanation)
+    else:
+        st.info("No explanation was returned.")
+
+
 st.set_page_config(
     page_title="LIAR Statement Classifier",
     page_icon="🧠",
@@ -177,7 +202,7 @@ st.set_page_config(
 )
 
 st.title("LIAR Statement Classifier")
-st.caption("Naive Bayes MVP with optional metadata and FastAPI backend")
+st.caption("Prediction with model selection, similar-statement retrieval, and explanation")
 
 statement = st.text_area(
     "Statement",
@@ -218,7 +243,7 @@ if use_metadata:
 status_placeholder = st.empty()
 result_placeholder = st.container()
 
-if st.button("Predict"):
+if st.button("Predict and Explain"):
     if not statement.strip():
         status_placeholder.error("Please enter a statement first.")
     else:
@@ -239,13 +264,13 @@ if st.button("Predict"):
             response = requests.post(
                 API_URL,
                 json=payload,
-                timeout=30,
+                timeout=270,
             )
 
             if response.status_code == 200:
                 data = response.json()
 
-                status_placeholder.success("Prediction completed.")
+                status_placeholder.success("Prediction and explanation completed.")
 
                 with result_placeholder:
                     render_prediction_label(data["prediction"])
@@ -256,6 +281,14 @@ if st.button("Predict"):
                     )
 
                     render_probabilities(data["class_probabilities"])
+
+                    render_similar_statements(
+                        data.get("similar_statements", [])
+                    )
+
+                    render_explanation(
+                        data.get("gemini_explanation", "")
+                    )
 
                     with st.expander("Raw API response"):
                         st.json(data)
@@ -270,11 +303,13 @@ if st.button("Predict"):
 
         except requests.exceptions.ConnectionError:
             status_placeholder.error(
-                "Could not connect to the FastAPI backend. Make sure uvicorn is running on http://127.0.0.1:8000."
+                "Could not connect to the FastAPI backend. Make sure the API is running and the API URL is correct."
             )
 
         except requests.exceptions.Timeout:
-            status_placeholder.error("The API request timed out.")
+            status_placeholder.error(
+                "The API request timed out. RoBERTa, Chroma, or Gemini may need more time."
+            )
 
         except Exception as error:
             status_placeholder.error(f"Unexpected error: {error}")
