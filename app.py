@@ -10,7 +10,7 @@ import requests
 import streamlit as st
 
 
-#API_URL = "https://liar-api-1091606282523.europe-west1.run.app/explain"
+API_URL = "https://liar-api-1091606282523.europe-west1.run.app/explain"
 
 MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
 
