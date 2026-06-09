@@ -10,12 +10,7 @@ import requests
 import streamlit as st
 
 
-<<<<<<< HEAD
 #API_URL = "https://liar-api-1091606282523.europe-west1.run.app/explain"
-API_URL = "http://127.0.0.1:8000/explain"
-=======
-API_URL = "https://liar-api-1091606282523.europe-west1.run.app/predict"
->>>>>>> cb7bb3f4525e0b50a400d34c99ef1c29b2f748a9
 
 MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
 
