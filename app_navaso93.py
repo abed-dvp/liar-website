@@ -1,5 +1,106 @@
+"""
+What is this file?
+This file defines the Streamlit frontend for the LIAR prediction project.
+
+What is its responsibility?
+It collects user input, lets the user optionally provide metadata, sends the request to the FastAPI backend, and displays the prediction, similar statements, and explanation.
+"""
+
+import requests
 import streamlit as st
 import pandas as pd
+
+# =====================================================
+# DEFINING API PARAMETERS AND VARIABLES
+# =====================================================
+
+API_URL = "https://liar-api-1091606282523.europe-west1.run.app/predict"
+
+MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
+# I would name thos eoptions differently, somehting more customer focused:
+#   - Basic
+#   - Pro
+#   - Premium
+# Something less technical and more relatable
+
+CONTEXT_OPTIONS = [
+    "unknown",
+    "ad",
+    "interview",
+    "press release",
+    "news conference",
+    "debate",
+    "social media",
+    "statement",
+    "email",
+    "tv appearance",
+    "other",
+]
+
+# =====================================================
+# DEFINING MAIN FUNCTIONS FOR LAYOUT
+# =====================================================
+
+def render_prediction_label(prediction: str) -> None:
+    label_styles = {
+        "trustworthy": {"background": "#2ecc71", "text": "Trustworthy"},
+        "questionable": {"background": "#ffd93b", "text": "Questionable"},
+        "unreliable": {"background": "#ff4b4b", "text": "Unreliable"},
+    }
+
+    style = label_styles.get(
+        prediction,
+        {"background": "#cccccc", "text": prediction},
+    )
+
+    st.markdown(
+        f"""
+        <div style="
+            border-radius: 1px;
+            padding: 18px;
+            background-color: {style["background"]};
+            color: #000000;
+            font-weight: 700;
+            text-align: center;
+            font-size: 22px;
+            margin-top: 12px;
+            margin-bottom: 12px;
+        ">
+            Prediction: {style["text"]}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+def render_probabilities(class_probabilities: dict) -> None:
+    st.subheader("Class probabilities")
+
+    for label, probability in class_probabilities.items():
+        st.write(f"{label}: {probability:.2%}")
+        st.progress(float(probability))
+
+def render_similar_statements(similar_statements: list[dict]) -> None:
+    st.subheader("Similar statements")
+
+    if not similar_statements:
+        st.info("No similar statements were returned.")
+        return
+
+    for index, item in enumerate(similar_statements, start=1):
+        with st.expander(f"Similar statement {index}: {item.get('label', 'unknown')}"):
+            st.write(f"Speaker: {item.get('speaker', 'unknown')}")
+            st.write(f"Label: {item.get('label', 'unknown')}")
+            st.write(f"Context: {item.get('context', 'unknown')}")
+            st.write(item.get("statement", ""))
+
+
+def render_explanation(explanation: str) -> None:
+    st.subheader("Explanation")
+
+    if explanation:
+        st.write(explanation)
+    else:
+        st.info("No explanation was returned.")
 
 # =====================================================
 # PAGE CONFIG
@@ -24,7 +125,8 @@ st.markdown("""
     background: radial-gradient(
         circle at center,
         #91dcff 0%,
-        #f5bdff 90%,
+        #c7b8ff 45%,
+        #f5bdff 80%,
         #a228ad 95%
     );
 }
@@ -39,14 +141,14 @@ st.markdown("""
     text-align: center;
     font-size: 4rem;
     font-weight: 800;
-    color: #312e81;
+    color: #1E1B4B;     /* Darkest */
 }
 
 .hero-subtitle {
     text-align: center;
     font-family: 'Orbitron', sans-serif;
     font-size: 1.3rem;
-    color: #4c1d95;
+    color: #5B21B6;     /* Secondary purple */
     margin-bottom: 2rem;
 }
 
@@ -55,7 +157,7 @@ st.markdown("""
     text-align: center;
     font-size: 2rem;
     font-weight: 700;
-    color: #312e81;
+    color: #312E81;     /* Main section color */
     margin-top: 2rem;
     margin-bottom: 1rem;
 }
@@ -71,7 +173,7 @@ st.markdown("""
     font-family: 'Orbitron', sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #5b5d5f;
+    color: #4338CA;     /* Accent indigo */
 }
 
 /* Metric card */
@@ -257,7 +359,7 @@ st.markdown(
 )
 
 statement = st.text_area(
-    "Statement",
+    'Statement',
     height=150,
     placeholder="Enter a statement made by a political figure..."
 )
@@ -266,20 +368,73 @@ col1, col2 = st.columns(2)
 
 with col1:
     speaker = st.text_input(
-        "Speaker",
+        'Speaker',
         placeholder="Enter the speaker full first and last name"
     )
 
 with col2:
     context = st.text_input(
-        "Context",
+        'Context',
         placeholder="Enter the context (press, speech, social media...)"
     )
+
+model_name = st.selectbox(
+    'Prediction Model',
+    MODEL_OPTIONS
+)
 
 analyze_button = st.button(
     "Predict statement trustworthiness",
     use_container_width=True
 )
+
+status_placeholder = st.empty()
+
+# ================= MANAGING API CALL ==================
+
+if analyze_button:
+    if not statement.strip():
+        status_placeholder.error("Please enter a statement first")
+    else:
+        payload = {
+            'model_name': model_name,
+            'statement': statement,
+            'speaker': speaker,
+            'context': context
+        }
+
+        try:
+            status_placeholder.info('Sending request to FastAPI backend...')
+
+            response = requests.post(
+                API_URL,
+                json=payload,
+                timeout=270
+            )
+
+            if response.status_code == 200:
+                st.session_state["results"] = response.json()
+                status_placeholder.success("Prediction and explanation completed.")
+
+            else:
+                status_placeholder.error(
+                    f"API error: HTTP {response.status_code}"
+                )
+                with st.expander("API response"):
+                    st.write(response.text)
+
+        except requests.exceptions.ConnectionError:
+            status_placeholder.error(
+                "Could not connect to the FastAPI backend. Make sure the API is running and the API URL is correct."
+            )
+        except requests.exceptions.Timeout:
+            status_placeholder.error(
+                "The API request timed out. RoBERTa, Chroma, or Gemini may need more time."
+            )
+        except Exception as error:
+            status_placeholder.error(f"Unexpected error: {error}")
+
+
 
 st.divider()
 
@@ -293,35 +448,18 @@ st.markdown(
 )
 
 # only show after prediction
-if analyze_button:
+if 'results' in st.session_state:
+    data = st.session_state["results"]
 
-    prediction = "Unreliable"
+    render_prediction_label(data["prediction"])
 
-    st.success(
-        f"Predicted Label: {prediction}"
+    st.metric(
+        "Confidence",
+        f"{data['confidence']:.2%}"
     )
 
-    model_results = pd.DataFrame({
-        "Model": [
-            "Naive Bayes",
-            "NB + XGBoost",
-            "RoBERTa"
-        ],
-        "Prediction": [
-            "Questionable",
-            "Unreliable",
-            "Unreliable"
-        ],
-        "Confidence": [
-            0.62,
-            0.81,
-            0.78
-        ]
-    })
-
-    st.dataframe(
-        model_results,
-        use_container_width=True
+    render_probabilities(
+        data["class_probabilities"]
     )
 
 st.divider()
@@ -335,31 +473,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if analyze_button:
+if 'results' in st.session_state:
+    data = st.session_state["results"]
 
-    for i in range(3):
-
-        with st.container(border=True):
-
-            st.markdown(
-                f"### Similar Statement {i+1}"
-            )
-
-            st.write(
-                "Example retrieved statement..."
-            )
-
-            st.write(
-                "**Speaker:** Example Speaker"
-            )
-
-            st.write(
-                "**Context:** Example Context"
-            )
-
-            st.write(
-                "**Label:** Unreliable"
-            )
+    render_similar_statements(
+        data.get("similar_statements", [])
+    )
 
 st.divider()
 
@@ -372,19 +491,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if analyze_button:
+if 'results' in st.session_state:
+    data = st.session_state["results"]
 
-    st.markdown(
-        """
-        Gemini explanation appears here.
-
-        It will explain:
-
-        - Why the statement was classified this way
-        - Similar examples found
-        - Confidence interpretation
-        - Possible rhetorical patterns
-        """
+    render_explanation(
+        data.get("gemini_explanation", "")
     )
 
 st.divider()
