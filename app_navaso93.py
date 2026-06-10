@@ -250,7 +250,7 @@ with col3:
 
 with col2:
     st.image(
-        "/home/mnavarrosotes/code/navaso93/final_project/liar_project/images/logo_liar.png",
+        "images/logo_liar.png",
         use_container_width=True,
     )
 
