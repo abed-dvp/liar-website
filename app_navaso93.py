@@ -263,9 +263,9 @@ with col3:
     )
 
 with col2:
-    st.markdown(
-        '<div class="hero-title">LIAR</div>',
-        unsafe_allow_html=True,
+    st.image(
+        "images/logo_liar.png",
+        use_container_width=True,
     )
 
     st.markdown(
