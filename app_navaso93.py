@@ -169,7 +169,6 @@ def render_model_result(data: dict) -> None:
         [
             {
                 "Class": label,
-                "Probability": probability,
                 "Probability %": f"{probability:.2%}",
             }
             for label, probability in data["class_probabilities"].items()
@@ -196,10 +195,10 @@ def render_similar_statements(similar_statements: list[dict]) -> None:
     for index, item in enumerate(similar_statements, start=1):
         with st.container(border=True):
             st.markdown(f"### Similar Statement {index}")
-            st.write(item.get("statement", ""))
-            st.write(f"Speaker: {item.get('speaker', 'unknown')}")
-            st.write(f"Context: {item.get('context', 'unknown')}")
-            st.write(f"Label: {item.get('label', 'unknown')}")
+            st.write(f"**STATEMENT:** {item.get("statement", "")}")
+            st.write(f"**SPEAKER:** {item.get('speaker', 'unknown')}")
+            st.write(f"**CONTEXT:** {item.get('context', 'unknown')}")
+            st.write(f"**LABEL:** {item.get('label', 'unknown')}")
 
 
 def render_explanation(explanation: str) -> None:
