@@ -15,12 +15,12 @@ API_URL = "https://liar-api-1091606282523.europe-west1.run.app/explain"
 
 MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
 
-SPEAKER_OPTIONS = ['Donald Trump', 'Barack Obama', 'Viral image',
+SPEAKER_OPTIONS = [' ', 'Donald Trump', 'Barack Obama', 'Viral image',
        'Bloggers', 'Hillary Clinton', 'Mitt Romney', 'Scott Walker',
        'Chain email', 'Rick perry', 'John Mccain', 'Rick Scott', 'Marco Rubio',
        'Joe Biden', 'Ted Cruz', 'Facebook Posts']
 
-CONTEXT_OPTIONS = ['Social Media', 'Ad', 'Interview', 'Debate', 'TV Appearance',
+CONTEXT_OPTIONS = [' ', 'Social Media', 'Ad', 'Interview', 'Debate', 'TV Appearance',
        'Press Release', 'Email', 'Statement', 'News Conference']
 
 
