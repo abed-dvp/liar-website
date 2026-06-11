@@ -11,7 +11,7 @@ import streamlit as st
 import pandas as pd
 
 
-API_URL = "http://0.0.0.0:8080/"
+API_URL = "http://0.0.0.0:8080/explain"
 
 
 MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
