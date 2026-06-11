@@ -133,7 +133,7 @@ with col2:
     st.image("images/label_pic.png", use_container_width=True)
 
     st.caption(
-        "Figure 1. Impact of trustworthiness labels on user engagement with true and false posts."
+        "Figure 1. Impact of trustworthiness labels on user engagement with true and false posts. Source LSE."
     )
 
 st.markdown(
