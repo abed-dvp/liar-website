@@ -15,6 +15,14 @@ API_URL = "https://liar-api-1091606282523.europe-west1.run.app/explain"
 
 MODEL_OPTIONS = ["naive", "naive_xboost", "roberta"]
 
+SPEAKER_OPTIONS = [' ', 'Donald Trump', 'Barack Obama', 'Viral image',
+       'Bloggers', 'Hillary Clinton', 'Mitt Romney', 'Scott Walker',
+       'Chain email', 'Rick perry', 'John Mccain', 'Rick Scott', 'Marco Rubio',
+       'Joe Biden', 'Ted Cruz', 'Facebook Posts']
+
+CONTEXT_OPTIONS = [' ', 'Social Media', 'Ad', 'Interview', 'Debate', 'TV Appearance',
+       'Press Release', 'Email', 'Statement', 'News Conference']
+
 
 st.set_page_config(
     page_title="LIAR - Trustworthiness Predictor",
@@ -161,7 +169,6 @@ def render_model_result(data: dict) -> None:
         [
             {
                 "Class": label,
-                "Probability": probability,
                 "Probability %": f"{probability:.2%}",
             }
             for label, probability in data["class_probabilities"].items()
@@ -188,10 +195,10 @@ def render_similar_statements(similar_statements: list[dict]) -> None:
     for index, item in enumerate(similar_statements, start=1):
         with st.container(border=True):
             st.markdown(f"### Similar Statement {index}")
-            st.write(item.get("statement", ""))
-            st.write(f"Speaker: {item.get('speaker', 'unknown')}")
-            st.write(f"Context: {item.get('context', 'unknown')}")
-            st.write(f"Label: {item.get('label', 'unknown')}")
+            st.write(f"**STATEMENT:** {item.get("statement", "")}")
+            st.write(f"**SPEAKER:** {item.get('speaker', 'unknown')}")
+            st.write(f"**CONTEXT:** {item.get('context', 'unknown')}")
+            st.write(f"**LABEL:** {item.get('label', 'unknown')}")
 
 
 def render_explanation(explanation: str) -> None:
@@ -273,31 +280,6 @@ with col2:
         unsafe_allow_html=True,
     )
 
-
-st.divider()
-
-
-# =====================================================
-# ABOUT SECTION
-# =====================================================
-
-st.markdown(
-    '<div class="section-title">About LIAR</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div style='text-align:center; font-family: Exo 2, sans-serif; font-weight:bold'>
-        LIAR is an AI-powered fact-checking tool that evaluates political statements as
-        Trustworthy, Questionable, or Unreliable. Combining Machine Learning, RAG, and LLMs,
-        it predicts a label, retrieves similar historical claims, and explains the reasoning
-        behind each assessment.
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
 st.divider()
 
 
@@ -324,18 +306,28 @@ with col1:
         MODEL_OPTIONS,
     )
 
-    speaker = st.text_input(
+    selected_speaker = st.selectbox(
         "Speaker",
-        value="unknown",
-        placeholder="Enter the speaker name",
+        SPEAKER_OPTIONS + ["Other"]
     )
 
+    if selected_speaker == "Other":
+        speaker = st.text_input("Enter speaker name")
+    else:
+        speaker = selected_speaker
+
 with col2:
-    context = st.text_input(
+    selected_context = st.selectbox(
         "Context",
-        value="statement",
-        placeholder="Enter the context, for example debate, interview, social media...",
+        CONTEXT_OPTIONS + ["Other"]
     )
+
+    if selected_context == "Other":
+        context = st.text_input("Enter context")
+    else:
+        context = selected_context
+
+
 
 analyze_button = st.button(
     "Predict statement trustworthiness",
