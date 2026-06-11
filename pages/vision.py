@@ -169,44 +169,41 @@ st.markdown(
     sufficient evidence becomes available.
 
     Example:
-
-    **Statement**
-    > "Country X will reduce emissions by 50% before 2030."
-
-    **Prediction**
-    > Questionable
-
-    **Fact (future)**
-    > Target not achieved. Emissions reduced by 18%.
-
-    This would allow users not only to assess credibility,
-    but also to understand what eventually happened in reality.
     """
 )
 
-# LONG TERM
+col1, col2, col3 = st.columns(3)
 
-st.markdown(
-    '<div class="section-title">Long-Term Goal</div>',
-    unsafe_allow_html=True
-)
+card_style = """
+background-color: rgba(255,255,255,0.55);
+border: 2px solid #7C3AED;
+border-radius: 15px;
+padding: 20px;
+text-align: center;
+height: 170px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+"""
 
-st.markdown(
-    """
-    The ultimate ambition is to create a transparent and self-improving
-    political fact-checking ecosystem where machine learning, collective
-    intelligence, and verified outcomes work together.
+with col1:
+    st.markdown(f"""
+    <div style="{card_style}">
+        <b>Statement</b><br><br>
+        "Germany will reduce emissions by 50% before 2030."
+    </div>
+    """, unsafe_allow_html=True)
 
-    Rather than relying solely on static historical datasets, the platform
-    could continuously learn from new information and evolve alongside
-    political discourse itself.
-    """
-)
+with col2:
+    st.markdown(f"""
+    <div style="{card_style}">
+        <b>Prediction</b><br><br>
+        Questionable
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("---")
-
-st.caption(
-    """
-    This roadmap represents a conceptual vision and is not part of the current implementation.
-    """
-)
+with col3:
+    st.markdown(f"""
+    <div style="{card_style}">
+        <b>Fact (future)</b><br><br>
+        Emissions reduced only by 18%.
+    </div>
+    """, unsafe_allow_html=True)
